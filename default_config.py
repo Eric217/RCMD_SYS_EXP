@@ -1,0 +1,6 @@
+DEBUG = False
+
+SECRET_KEY = 'hermes'
+
+SQLALCHEMY_DATABASE_URI = ''
+SQLALCHEMY_ECHO = True
