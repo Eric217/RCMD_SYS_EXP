@@ -23,7 +23,7 @@ class DataBase(object):
             count = 10000000
         query = "select atc.id, atc.author_id, atc.clicks, atc.cover_url, atc.create_time, " \
                 "atc.kind_id, atc.likes, atc.title, " \
-                "knd.name, acc.username, LEFT(atc.content, 60)" \
+                "knd.name, acc.username, atc.content" \
                 " from t_article as atc, t_kind as knd, t_account as acc" \
                 " where atc.kind_id = knd.id and atc.author_id = acc.id" \
                 " limit " + pymysql.escape_string(str(count))
@@ -32,7 +32,7 @@ class DataBase(object):
         data = []
         for row in results:
             news = {'id': row[0], 'create_time': row[4], 'title': row[7], 'clicks': row[2],
-                    'cover_url': row[3], 'likes': row[6], 'content_summary': row[10],
+                    'cover_url': row[3], 'likes': row[6], 'content': row[10],
                     'kind': {'id': row[5], 'name': row[8]},
                     'author': {'id': row[1], 'username': row[9]}}
             data.append(news)
@@ -80,7 +80,7 @@ class DataBase(object):
         self.connect.close()
 
 
-def get_content(obj):
+def extract_main(obj):
     return obj.get('content')
 
 

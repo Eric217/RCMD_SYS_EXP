@@ -2,11 +2,11 @@ import numpy as np
 import jieba
 
 from recmd.constants import ch_stopwords, all_articles, db
-from recmd.database import get_content, get_id
+from recmd.database import extract_main, get_id
 from recmd.tools import is_number, add_or_inc, append_no_rep, lg, cosine, try_insert
 
 
-class Recommender(object):
+class CBRecommender(object):
 
     def __init__(self):
         stop_list = ch_stopwords
@@ -22,7 +22,7 @@ class Recommender(object):
             a_tf = {}  # article words with count
             a_total_words = 0  # article total word count (allow repeat)
 
-            for word in jieba.lcut(get_content(article)):
+            for word in jieba.cut(extract_main(article)):
                 _w = word.strip()
                 if len(_w) == 0 or is_number(_w) or _w in stop_list:
                     continue
@@ -51,8 +51,7 @@ class Recommender(object):
             _idf = lg(article_count / c)
 
             for doc in range(article_count):
-                _tf = all_tf[doc][all_words[word]]
-
+                _tf = all_tf[doc].get(all_words[word], 0)
                 tf_idf[doc][word] = _tf * _idf
 
         self.stop_list = stop_list
@@ -74,7 +73,7 @@ class Recommender(object):
 
         return vec[0, 0:], docs
 
-    def recommend_for_user(self, user_id, except_read=True):
+    def recommend_for_user(self, user_id, except_read=True, _max=20):
         user_vec, relative_docs = self.calc_user_vec(user_id)
 
         cos_dict = {}
@@ -84,24 +83,30 @@ class Recommender(object):
                     continue
             doc_vec = self.tf_idf[doc, 0:]
             cos = cosine(doc_vec, user_vec)
-            try_insert(cos_dict, doc, cos)
+            try_insert(cos_dict, doc, cos, _max)
 
-        result = [self.articles[doc] for doc in cos_dict.keys()]
-        return result
-
-
-_recommender = Recommender()
+        _result = [self.articles[doc] for doc in cos_dict.keys()]
+        return _result
 
 
-def recommend_by_user(user_id, except_read=True):
-    return _recommender.recommend_for_user(user_id, except_read)
+_recommender = CBRecommender()
+
+
+def cb_recommend_by_user(user_id, _max=20):
+    _result = _recommender.recommend_for_user(user_id, True, _max)
+
+    ret_val = []
+    for _article in _result:
+        _a = _article.copy()
+        _a['content_summary'] = _a['content'][0:60]
+        del _a['content']
+        ret_val.append(_a)
+    return ret_val
 
 
 if __name__ == "__main__":  # 测试
 
-    user_id = 1
-
-    result = recommend_by_user(user_id)
-
-    print(result)
+    result = cb_recommend_by_user(1)
+    for r in result:
+        print(r.get('title'))
 

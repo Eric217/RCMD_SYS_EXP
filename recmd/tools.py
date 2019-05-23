@@ -12,7 +12,15 @@ def get_chinese_stopwords():
         w = line.replace('\n', '')
         if w:
             stop_words.append(w)
-    return stop_words
+    return add_ascii_stopwords(stop_words)
+
+
+def add_ascii_stopwords(ls):
+    for i in range(26):
+        ls.append(chr(ord('a') + i))
+    for i in range(26):
+        ls.append(chr(ord('A') + i))
+    return ls
 
 
 def cosine(a, b):
