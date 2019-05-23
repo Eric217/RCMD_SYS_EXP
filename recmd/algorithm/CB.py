@@ -1,16 +1,15 @@
 import numpy as np
 import jieba
 
-from database import db, get_content, get_id
-from tools import *
+from recmd.database import *
+from recmd.tools import *
 
 
 class Recommender(object):
 
     def __init__(self):
-        stop_list = get_chinese_stopwords()
-
-        news_list = db.get_articles()
+        stop_list = ch_stopwords
+        news_list = all_articles
 
         article_count = len(news_list)
 

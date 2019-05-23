@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse
 from flask_app.output import Output
 
-from .recommend import recommend_by_user_id, recommend_by_query_ls
+from recmd.algorithm.recommend import recommend_by_user_id, recommend_by_query_ls
 
 
 class RecommendAllAPI(Resource):

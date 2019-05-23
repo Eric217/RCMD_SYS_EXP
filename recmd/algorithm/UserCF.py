@@ -1,5 +1,5 @@
-from tools import *
-from database import db
+from recmd.tools import *
+from recmd.database import db
 
 
 def get_data():
