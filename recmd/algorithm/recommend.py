@@ -1,8 +1,6 @@
 import numpy as np
 import jieba
 
-from recmd.database import *
-
 
 import synonyms as sy
 

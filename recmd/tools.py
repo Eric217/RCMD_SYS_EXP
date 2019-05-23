@@ -84,5 +84,3 @@ def add_and_create(_dict, _key, _value):
         _dict[_key] = set()
     _dict[_key].add(_value)
 
-
-ch_stopwords = get_chinese_stopwords()

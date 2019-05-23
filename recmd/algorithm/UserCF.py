@@ -1,5 +1,7 @@
-from recmd.tools import *
-from recmd.database import db
+import math
+
+from recmd.constants import db
+from recmd.tools import add_and_create
 
 
 def get_data():

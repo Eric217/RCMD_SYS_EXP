@@ -86,8 +86,3 @@ def get_content(obj):
 
 def get_id(obj):
     return obj.get('id')
-
-
-db = DataBase()
-
-all_articles = db.get_articles()

@@ -1,8 +1,9 @@
 import numpy as np
 import jieba
 
-from recmd.database import *
-from recmd.tools import *
+from recmd.constants import ch_stopwords, all_articles, db
+from recmd.database import get_content, get_id
+from recmd.tools import is_number, add_or_inc, append_no_rep, lg, cosine, try_insert
 
 
 class Recommender(object):
