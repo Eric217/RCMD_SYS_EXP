@@ -1,57 +1,15 @@
 import numpy as np
 import jieba
-import pymysql
-import math
-import codecs
-import unicodedata
+
+from recmd.database import *
+
+
 import synonyms as sy
-import os
+
 
 from collections import OrderedDict
 from numpy import linalg
-
-
-def cosine(a, b):
-    if len(a) != len(b):
-        print('error: cos length')
-        return None
-    part_up = 0.0
-    a_sq = 0.0
-    b_sq = 0.0
-    for a1, b1 in zip(a,b):
-        part_up += a1*b1
-        a_sq += a1**2
-        b_sq += b1**2
-    part_down = math.sqrt(a_sq*b_sq)
-    if part_down == 0.0:
-        return None
-    else:
-        return part_up / part_down
-
-
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        pass
-    try:
-        unicodedata.numeric(s)
-        return True
-    except (TypeError, ValueError):
-        pass
-    return False
-
-
-def get_chinese_stopwords():
-    ch_stopwords_filename = os.path.split(os.path.realpath(__file__))[0] + '/stopwords.txt'
-
-    stop_words = []
-    for line in codecs.open(ch_stopwords_filename, 'r', 'utf-8'):
-        w = line.replace('\n', '')
-        if w:
-            stop_words.append(w)
-    return stop_words
+from recmd.tools import *
 
 
 def get_title(obj):
@@ -60,67 +18,6 @@ def get_title(obj):
 
 def get_author_id(obj):
     return obj.get('author').get('id')
-
-
-class DataBase(object):
-
-    def __init__(self):
-        self.connect = pymysql.connect(
-            host='localhost',
-            port=3306,
-            db='intellature',
-            user='eric',
-            passwd='Eric@12345',
-            charset='utf8',
-            use_unicode=True
-        )
-        self.cursor = self.connect.cursor()
-        self.connect.autocommit(True)
-
-    # count 为需要返回的数目，-1 表示全部
-    def get_articles(self, count=-1):
-        if count == -1:
-            count = 10000000
-        query = "select atc.id, atc.author_id, atc.clicks, atc.cover_url, atc.create_time, " \
-                "atc.kind_id, atc.likes, atc.title, " \
-                "knd.name, acc.username, LEFT(atc.content, 60)" \
-                " from t_article as atc, t_kind as knd, t_account as acc" \
-                " where atc.kind_id = knd.id and atc.author_id = acc.id" \
-                " limit " + pymysql.escape_string(str(count))
-        self.cursor.execute(query)
-        results = self.cursor.fetchall()
-        data = []
-        for row in results:
-            news = {'id': row[0], 'create_time': row[4], 'title': row[7], 'clicks': row[2],
-                    'cover_url': row[3], 'likes': row[6], 'content_summary': row[10],
-                    'kind': {'id': row[5], 'name': row[8]},
-                    'author': {'id': row[1], 'username': row[9]}}
-            data.append(news)
-        return data
-
-    def get_article_title(self, author_id=-1):
-
-        if author_id is None or author_id == -1:
-            q = "select title from t_article limit 20"
-        else:
-            a_id = pymysql.escape_string(str(author_id))
-            q = '''select title from t_article where id in 
-                    (select article_id from t_favorite where user_id =    {}
-              union  select article_id from t_like     where account_id = {}
-              union  select id         from t_article  where author_id =  {}
-              union  select article_id from t_reply    where author_id =  {})
-              limit 20 '''.format(a_id, a_id, a_id, a_id)
-
-        self.cursor.execute(q)
-        results = self.cursor.fetchall()
-        return [row[0] for row in results]
-
-    def __del__(self):
-        self.cursor.close()
-        self.connect.close()
-
-
-db = DataBase()
 
 # 300文章，14000 左右关键词，29维，全文检索，cos值 0.82
 # 2000文章，7300 左右关键词，144维，仅标题检索，cos值 0.85
@@ -196,9 +93,9 @@ def get_fixed_keywords(query_word_list, min_match=0.78):
 class Recommender(object):
 
     def __init__(self):
-        stop_list = get_chinese_stopwords()
+        stop_list = ch_stopwords
 
-        news_list = db.get_articles(1000)
+        news_list = all_articles
 
         # 生成 词-文档 字典记录了每个词出现在哪些文档里
         tf_dict = {}

@@ -34,7 +34,7 @@ class RecommendSameAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('user_id', type=int, location='json')
-        self.reqparse.add_argument('articles', type=list, location='json')
+        self.reqparse.add_argument('article', type=dict, location='json')
         super(RecommendSameAPI, self).__init__()
 
     def post(self):
