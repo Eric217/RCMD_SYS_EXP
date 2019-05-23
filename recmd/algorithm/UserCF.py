@@ -1,19 +1,7 @@
 import math
 
-from recmd.constants import db
+from recmd.constants import user_activity
 from recmd.tools import add_and_create, add_or_inc
-
-
-def get_data():
-    uid_ls = db.get_all_user_id()
-    dataset = dict()
-    for user in uid_ls:
-        dataset[user] = dict()
-        aid_ls = db.get_user_relative_article_id(user)
-        for item_id in aid_ls:
-            dataset[user][item_id] = 1
-
-    return dataset
 
 
 def get_user_similarity(dataset):
@@ -49,20 +37,15 @@ def get_user_similarity(dataset):
 
 class UserIIFRecommender(object):
 
-    K = 8
-
     def __init__(self):
-        data = get_data()
-        user_sim_matrix = get_user_similarity(data)
+        self.dataset = user_activity
+        self.user_sim_mat = get_user_similarity(user_activity)
 
-        self.dataset = data
-        self.user_sim_mat = user_sim_matrix
-
-    def recommend_by_user(self, user_id):
+    def recommend_by_user(self, user_id, _k=8):
         rank = dict()
         interacted_items = self.dataset[user_id]
         for v, wuv in sorted(self.user_sim_mat[user_id].items(),
-                             key=lambda x: x[1], reverse=True)[0:self.K]:
+                             key=lambda x: x[1], reverse=True)[0:_k]:
             for item, rvi in self.dataset[v].items():
                 if item in interacted_items:
                     continue

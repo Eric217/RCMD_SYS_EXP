@@ -86,3 +86,20 @@ def extract_main(obj):
 
 def get_id(obj):
     return obj.get('id')
+
+
+def get_user_activity(db):
+    """
+
+    :param db:
+    :return: format: {user_id: {item_id: score, }, }
+    """
+    uid_ls = db.get_all_user_id()
+    dataset = dict()
+    for user in uid_ls:
+        dataset[user] = dict()
+        aid_ls = db.get_user_relative_article_id(user)
+        for item_id in aid_ls:
+            dataset[user][item_id] = 1
+
+    return dataset
