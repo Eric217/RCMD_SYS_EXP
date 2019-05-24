@@ -9,19 +9,19 @@ class RecommendAllAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('user_id', type=int, location='json')
-        self.reqparse.add_argument('existed_id_ls', type=list, location='json')
+        self.reqparse.add_argument('existed_id_ls', type=str, location='json')
         super(RecommendAllAPI, self).__init__()
 
     def post(self):
         args = self.reqparse.parse_args()
         user_id = args['user_id']
-        filter_ids = args['existed_id_ls']
-
-        if filter_ids is None:
+        filter_ids_arg = args['existed_id_ls']
+        if len(filter_ids_arg) == 0:
             filter_ids = []
+        else:
+            filter_ids = [int(num) for num in filter_ids_arg.split()]
 
-        print_str = ' '.join(filter_ids[0:5])
-        print('主页推荐,参数 - user id:', user_id, '过滤列表:', print_str)
+        print('主页推荐,参数 - user id:', user_id)
 
         last_page = False
         if user_id is None or user_id < 0:

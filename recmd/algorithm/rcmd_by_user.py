@@ -1,3 +1,5 @@
+import time
+
 from recmd.algorithm.CB import cb_recommend_by_user
 from recmd.algorithm.ItemCF import iuf_recommend_by_user
 from recmd.algorithm.UserCF import iif_recommend_by_user

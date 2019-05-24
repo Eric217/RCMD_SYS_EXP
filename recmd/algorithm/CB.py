@@ -1,9 +1,13 @@
 import numpy as np
 import jieba
+import time
 
 from recmd.constants import ch_stopwords, all_articles, db, user_activity
 from recmd.database import extract_main, get_id, sum_content_and_format, id_to_idx
 from recmd.tools import is_number, add_or_inc, append_no_rep, lg, cosine, try_insert
+
+
+jieba.enable_parallel(8)
 
 
 class CBRecommender(object):
@@ -16,13 +20,14 @@ class CBRecommender(object):
 
         all_words = []
         all_tf = []
+        s = time.time()
 
         for article in news_list:
             _w = ''
             a_tf = {}  # article words with count
             a_total_words = 0  # article total word count (allow repeat)
 
-            for word in jieba.cut(extract_main(article)):
+            for word in jieba.cut(extract_main(article).split('\n')[0]):
                 _w = word.strip()
                 if len(_w) == 0 or is_number(_w) or _w in stop_list:
                     continue
@@ -53,7 +58,8 @@ class CBRecommender(object):
             for doc in range(article_count):
                 _tf = all_tf[doc].get(all_words[word], 0)
                 tf_idf[doc][word] = _tf * _idf
-
+        e = time.time()
+        print('cb init:', e-s)
         self.stop_list = stop_list
         self.articles = news_list
         self.keywords = all_words
@@ -82,15 +88,20 @@ class CBRecommender(object):
         return self.calc_vec(relative_ids)
 
     def cb_recommend(self, vec, docs, _max):
+        s = time.time()
         cos_dict = {}
-        for doc in range(len(self.articles)):
+        for doc in range(0, len(self.articles), 17):
             if doc in docs:
                 continue
             doc_vec = self.tf_idf[doc, 0:]
             cos = cosine(doc_vec, vec)
+            if cos is None:
+                continue
             try_insert(cos_dict, doc, cos, _max)
 
         _result = [self.articles[doc] for doc in cos_dict.keys()]
+        e = time.time()
+        print('cb rec for', len(docs), 'docs:', e-s)
         return _result
 
     def recommend_for_user(self, user_id, _max=20):
@@ -128,7 +139,8 @@ def cb_recommend_by_items(item_ids, _max=20):
 
 if __name__ == "__main__":  # 测试
 
-    result = cb_recommend_by_user(1)
-    for r in result:
-        print(r.get('title'))
+    # result = cb_recommend_by_user(7)
+    # for r in result:
+    #     print(r.get('title'))
 
+    result = cb_recommend_by_items([100007])
