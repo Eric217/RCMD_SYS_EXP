@@ -38,8 +38,8 @@ class ItemCFIUFRecommender(object):
     def recommend_by_user(self, user_id, _k=8):
         rank = dict()
         items = self.dataset[user_id]
-        for id, score in items.items():
-            for id_, weight in sorted(self.item_sim_mat[id].items(), key=lambda x: x[1],
+        for item_id, score in items.items():
+            for id_, weight in sorted(self.item_sim_mat[item_id].items(), key=lambda x: x[1],
                                       reverse=True)[0: _k]:
                 if id_ in items:
                     continue
@@ -48,7 +48,7 @@ class ItemCFIUFRecommender(object):
                     rank[id_]['weight'] = 0
                     rank[id_]['reason'] = {}
                 rank[id_]['weight'] += score * weight
-                rank[id_]['reason'][id] = score * weight
+                rank[id_]['reason'][item_id] = score * weight
 
         return rank
 
@@ -57,10 +57,14 @@ _recommender = ItemCFIUFRecommender()
 
 
 def iuf_recommend_by_user(user_id, _max=20):
-    ranked_dict = _recommender.recommend_by_user(user_id)
-    ranked_ls = sorted(ranked_dict.items(), key=lambda x: x[1]['weight'], reverse=True)[0:_max]
+    """
 
-    return ranked_ls
+    :return: [(id: {weight: w, reason: {id: score}}), ]
+    """
+    ranked_dict = _recommender.recommend_by_user(user_id)
+
+    result = sorted(ranked_dict.items(), key=lambda x: x[1]['weight'], reverse=True)[0: _max]
+    return result
 
 
 if __name__ == "__main__":

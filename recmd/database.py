@@ -31,8 +31,8 @@ class DataBase(object):
         results = self.cursor.fetchall()
         data = []
         for row in results:
-            news = {'id': row[0], 'create_time': row[4], 'title': row[7], 'clicks': row[2],
-                    'cover_url': row[3], 'likes': row[6], 'content': row[10],
+            news = {'id': row[0], 'create_time': str(row[4]), 'title': row[7],
+                    'clicks': row[2], 'cover_url': row[3], 'likes': row[6], 'content': row[10],
                     'kind': {'id': row[5], 'name': row[8]},
                     'author': {'id': row[1], 'username': row[9]}}
             data.append(news)
@@ -88,10 +88,53 @@ def get_id(obj):
     return obj.get('id')
 
 
+def get_title(obj):
+    return obj.get('title')
+
+
+def get_author_id(obj):
+    return obj.get('author').get('id')
+
+
+def id_to_idx(item_id, article_ls):
+    target_idx = -1
+    for idx, doc in enumerate(article_ls):
+        if get_id(doc) == item_id:
+            target_idx = idx
+            break
+    return target_idx
+
+
+def ids_to_indices(id_ls, article_ls):
+    indices = []
+    for idx, article in enumerate(article_ls):
+        if get_id(article) in id_ls:
+            indices.append(idx)
+            if len(id_ls) == len(indices):
+                break
+
+    return indices
+
+
+def sum_content_and_format(obj, _copy=True, _delete=True, _sum_len=60):
+    if _copy:
+        _a = obj.copy()
+    else:
+        _a = obj
+
+    # content to summary
+    _a['content_summary'] = _a['content'][0:_sum_len]
+    if _delete:
+        del _a['content']
+
+    # time convert
+    _a['create_time'] = str(_a['create_time'])
+    return _a
+
+
 def get_user_activity(db):
     """
 
-    :param db:
     :return: format: {user_id: {item_id: score, }, }
     """
     uid_ls = db.get_all_user_id()

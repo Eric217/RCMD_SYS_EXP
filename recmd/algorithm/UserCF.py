@@ -44,6 +44,8 @@ class UserIIFRecommender(object):
     def recommend_by_user(self, user_id, _k=8):
         rank = dict()
         interacted_items = self.dataset[user_id]
+        if user_id not in self.user_sim_mat:
+            return {}
         for v, wuv in sorted(self.user_sim_mat[user_id].items(),
                              key=lambda x: x[1], reverse=True)[0:_k]:
             for item, rvi in self.dataset[v].items():
@@ -59,12 +61,13 @@ _recommender = UserIIFRecommender()
 
 
 def iif_recommend_by_user(user_id, _max=20):
+    """
+
+    :return: [(id, rank), ]
+    """
     item_rank = _recommender.recommend_by_user(user_id)
     ranked_ls = sorted(item_rank.items(), key=lambda x: x[1], reverse=True)[0:_max]
-    # [(id, rank),()]
-    result = []
-
-    return result
+    return ranked_ls
 
 
 if __name__ == '__main__':
